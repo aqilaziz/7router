@@ -13,13 +13,18 @@ Gateway OpenAI-compatible + dashboard web. Cocok untuk BYOK di VS Code
    selama service jalan.
 
 ## Teknologi
-- **Node.js + TypeScript + Fastify** (ringan, cepat, satu proses)
-- **better-sqlite3** (database file lokal, tanpa server tambahan)
+- **Node.js 22+ + JavaScript + Fastify** (ringan, satu proses, tanpa build step)
+- **node:sqlite bawaan Node** (database file lokal, tanpa modul native / Visual Studio)
 - **Dashboard HTML/JS murni** (tanpa build step)
+- Tes model 1-klik + intip daftar model upstream (`GET /models` provider)
 - Protokol **OpenAI-compatible**: `/v1/chat/completions`, `/v1/completions`,
   `/v1/embeddings`, `/v1/models`, dll.
 
 ## Cara jalan (di PC sendiri setelah clone dari GitHub)
+Syarat: **Node.js 22 atau lebih baru** (cek: `node --version`).
+Kalau masih Node 20/21, update dulu dari https://nodejs.org — karena
+database memakai `node:sqlite` bawaan Node 22+.
+
 ```powershell
 git clone https://github.com/aqilaziz/7router.git
 cd 7router

@@ -39,9 +39,9 @@ code{background:#0f172a;padding:2px 8px;border-radius:6px;font-size:12px}
 <div class="card">
 <h2>Cara pakai di VS Code (BYOK)</h2>
 <div class="row">
-<div><span class="mut">Base URL</span><br><code id="byokBase"></code></div>
-<div><span class="mut">API Key</span><br><code>isi GATEWAY_API_KEY dari .env (atau bebas bila kosong)</code></div>
-<div><span class="mut">Model</span><br><code>alias model yang didaftarkan di bawah</code></div>
+<div><span class="mut">Base URL</span><br><code id="byokBase"></code> <button class="ghost small" onclick="copyText('byokBase',this)">copy</button></div>
+<div><span class="mut">API Key (gateway)</span><br><code id="byokKey">memuat...</code> <button class="ghost small" onclick="copyText('byokKey',this)">copy</button></div>
+<div><span class="mut">Model</span><br><code id="byokModel">alias model di bawah</code> <button class="ghost small" onclick="copyText('byokModel',this)">copy</button></div>
 </div>
 <p class="mut">Cline / Roo Code: Settings - Provider OpenAI Compatible - isi Base URL + Key + Model alias.<br>
 Continue (config.yaml): provider openai dengan apiBase seperti di atas.</p>
@@ -66,14 +66,16 @@ Continue (config.yaml): provider openai dengan apiBase seperti di atas.</p>
 <div id="providers"></div>
 </div>
 <div class="card">
-<h2>Model Virtual</h2>
+<h2>Model Virtual (alias untuk VS Code) + Tes</h2>
 <div class="row">
-<input id="mAlias" placeholder="Alias (mis. auto-free)">
+<input id="mAlias" placeholder="Alias (mis. glm-53)">
 <select id="mProv"></select>
-<input id="mUp" placeholder="Upstream model" style="min-width:260px">
+<input id="mUp" placeholder="Upstream model (mis. free/glm-5.3)" style="min-width:260px">
 <button onclick="addModel()">Tambah Model</button>
 </div>
+<p class="mut">Klik <b>Tes</b> untuk kirim chat kecil "ping" lewat 7router — ketahuan model berfungsi atau tidak, key ke berapa yang dipakai, dan berapa latency-nya.</p>
 <div id="models"></div>
+<div id="testResult"></div>
 </div>
 <div class="card">
 <h2>Status & Log</h2>

@@ -1,7 +1,23 @@
 const base = location.origin;
 document.getElementById('baseUrl').textContent = base;
 document.getElementById('byokBase').textContent = base + '/v1';
-const api = (m, u, b) => fetch(u, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }).then(r => r.json());
+const api = (m, u, b) => fetch(u, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }).then(async r => {
+  const t = await r.text();
+  try { return JSON.parse(t); } catch { return { ok: r.ok, raw: t.slice(0, 300) }; }
+});
+async function copyText(elId, btn) {
+  const t = document.getElementById(elId).textContent.trim();
+  try { await navigator.clipboard.writeText(t); }
+  catch { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  if (btn) { const o = btn.textContent; btn.textContent = 'ok!'; setTimeout(() => btn.textContent = o, 1200); }
+}
+async function loadGatewayKey() {
+  try {
+    const c = await api('GET', '/api/config');
+    document.getElementById('byokKey').textContent = c.gateway_key || '(kosong - bebas isi apa saja)';
+  } catch { document.getElementById('byokKey').textContent = '(gagal memuat)'; }
+}
+loadGatewayKey();
 const PRESETS = {
   openrouter: ['openrouter', 'https://openrouter.ai/api/v1', 'Bearer'],
   groq: ['groq', 'https://api.groq.com/openai/v1', 'Bearer'],
@@ -15,7 +31,7 @@ async function addProvider() {
   if (r.error) return alert(r.error);
   pName.value = ''; pBase.value = ''; load();
 }
-async function delProvider(id) { if (confirm('Hapus provider + semua key & modelnya?')) { await api('DELETE', '/api/providers/' + id); load(); } }
+async function delProvider(id) { if (!confirm('Hapus provider + semua key & modelnya?')) return; const r = await api('DELETE', '/api/providers/' + id); if (r && r.error) alert('Gagal hapus provider: ' + r.error); load(); }
 async function toggleProvider(id, en) { await api('PUT', '/api/providers/' + id, { enabled: en ? 0 : 1 }); load(); }
 async function addKey(pid) {
   const el = document.getElementById('k_' + pid);
@@ -24,7 +40,23 @@ async function addKey(pid) {
   if (r.error) return alert(r.error);
   el.value = ''; load();
 }
-async function delKey(id) { if (confirm('Hapus key ini?')) { await api('DELETE', '/api/keys/' + id); load(); } }
+async function delKey(id) { if (!confirm('Hapus key ini?')) return; const r = await api('DELETE', '/api/keys/' + id); if (r && r.error) alert('Gagal hapus key: ' + r.error); load(); }
+async function delModel(id) { if (!confirm('Hapus model?')) return; const r = await api('DELETE', '/api/models/' + id); if (r && r.error) alert('Gagal hapus model: ' + r.error); load(); }
+const shownKeys = {};
+async function toggleShowKey(id) {
+  if (shownKeys[id]) { delete shownKeys[id]; load(); return; }
+  const r = await api('GET', '/api/keys/' + id);
+  if (r.error) return alert('Gagal ambil key: ' + r.error);
+  shownKeys[id] = r.key_value;
+  load();
+}
+async function copyKey(id) {
+  const r = await api('GET', '/api/keys/' + id);
+  if (r.error) return alert('Gagal ambil key: ' + r.error);
+  const v = r.key_value || '';
+  try { await navigator.clipboard.writeText(v); alert('Key tersalin!'); }
+  catch { const ta = document.createElement('textarea'); ta.value = v; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('Key tersalin!'); }
+}
 async function resetKey(id) { await api('POST', '/api/keys/' + id + '/reset'); load(); }
 async function toggleKey(id, en) { await api('PUT', '/api/keys/' + id, { enabled: en ? 0 : 1 }); load(); }
 async function prioKey(id, p, d) { await api('PUT', '/api/keys/' + id, { priority: p + d }); load(); }
@@ -33,5 +65,21 @@ async function addModel() {
   if (r.error) return alert(r.error);
   mAlias.value = ''; mUp.value = ''; load();
 }
-async function delModel(id) { if (confirm('Hapus model?')) { await api('DELETE', '/api/models/' + id); load(); } }
 async function toggleModel(id, en) { await api('PUT', '/api/models/' + id, { enabled: en ? 0 : 1 }); load(); }
+async function testModel(alias) {
+  const box = document.getElementById('testResult');
+  box.innerHTML = '<p class="mut">Tes ' + alias + ' ...</p>';
+  const r = await api('POST', '/api/test/' + encodeURIComponent(alias));
+  if (r.ok) box.innerHTML = '<p style="color:#22c55e"><b>OK</b> ' + alias + ' -> ' + r.upstream + ' via key #' + r.key_index + ' (' + r.latency_ms + ' ms). Balasan: <code>' + (r.reply || '(kosong)').replace(/</g, '&lt;') + '</code></p>';
+  else box.innerHTML = '<p style="color:#ef4444"><b>GAGAL</b> ' + alias + ': ' + (r.error || JSON.stringify(r.attempts || []).slice(0, 400)) + '</p>';
+  load();
+}
+async function showUpstream(pid, pname) {
+  const box = document.getElementById('testResult');
+  box.innerHTML = '<p class="mut">Ambil daftar model ' + pname + ' ...</p>';
+  const r = await api('GET', '/api/upstream-models/' + pid);
+  if (r.error) { box.innerHTML = '<p style="color:#ef4444"><b>Gagal:</b> ' + r.error + '</p>'; return; }
+  box.innerHTML = '<p class="mut">' + r.provider + ': ' + r.count + ' model. Klik nama untuk isi ke form upstream.</p>' +
+    r.models.map(m => '<button class="ghost small" style="margin:2px" onclick="pickUpstream(\'' + m.replace(/'/g, '') + '\')">' + m + '</button>').join('');
+}
+function pickUpstream(name) { mUp.value = name; window.scrollTo(0, 0); mUp.focus(); }

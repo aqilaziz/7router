@@ -5,22 +5,17 @@
   "description": "7router - provider lokal mirip 9Router: multi provider, multi API key dengan rotasi & failover otomatis, OpenAI-compatible untuk BYOK VSCode",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
-    "build": "tsc",
-    "serve": "node dist/index.js"
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
   },
   "dependencies": {
-    "@fastify/cors": "^9.0.1",
-    "@fastify/static": "^7.0.2",
-    "better-sqlite3": "^11.2.1",
+    "@fastify/cors": "^11.0.1",
+    "@fastify/static": "^8.3.0",
     "dotenv": "^16.4.5",
     "fastify": "^5.1.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.11",
     "@types/node": "^22.7.4",
-    "tsx": "^4.19.1",
     "typescript": "^5.6.2"
   }
 }

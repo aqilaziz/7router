@@ -1,14 +1,31 @@
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 
 const dbPath = process.env.DB_PATH ?? "./data/router.db";
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
-export const db = new Database(dbPath);
-db.pragma("journal_mode = WAL");
+const raw = new DatabaseSync(dbPath);
+raw.exec("PRAGMA journal_mode = WAL;");
 
-db.exec(`
+function wrap(sql: string) {
+  const stmt = raw.prepare(sql);
+  return {
+    get: (...params: any[]) => stmt.get(...params) as any,
+    all: (...params: any[]) => stmt.all(...params) as any[],
+    run: (...params: any[]) => {
+      const r = stmt.run(...params) as any;
+      return { lastInsertRowid: (r as any).lastInsertRowid ?? 0, changes: (r as any).changes ?? 0 };
+    },
+  };
+}
+
+export const db = {
+  prepare: wrap,
+  exec: (sql: string) => raw.exec(sql),
+};
+
+raw.exec(`
 CREATE TABLE IF NOT EXISTS providers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
@@ -53,7 +70,7 @@ CREATE TABLE IF NOT EXISTS request_logs (
 );
 `);
 
-// Seed contoh: 1 provider OpenRouter + 1 model virtual (disabled default supaya user isi sendiri)
+// Seed contoh: 1 provider OpenRouter + 1 model virtual
 const n = (db.prepare("SELECT COUNT(*) AS c FROM providers").get() as any).c;
 if (n === 0) {
   db.prepare(
