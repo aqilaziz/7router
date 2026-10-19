@@ -102,9 +102,10 @@ export async function openaiRoutes(app) {
       const a0 = Date.now();
       try {
         const res = await forwardOnce(provider, k.key_value, "/chat/completions", "", "POST",
-          { model: mapping.upstream_model, messages: [{ role: "user", content: "ping" }], max_tokens: 8 }, {});
+          { model: mapping.upstream_model, messages: [{ role: "user", content: "ping" }], max_tokens: 16 }, {});
         const ms = Date.now() - a0;
-        const text = Buffer.from(res.body).toString("utf8").slice(0, 400);
+        const fullText = Buffer.from(res.body).toString("utf8");
+        const text = fullText.slice(0, 1000);
         if (res.status >= 200 && res.status < 300) {
           let replyText = "";
           try { replyText = JSON.parse(text).choices?.[0]?.message?.content ?? ""; } catch {}
@@ -113,7 +114,7 @@ export async function openaiRoutes(app) {
           return { ok: true, alias, upstream: mapping.upstream_model, provider: provider.name, key_index: keys.indexOf(k) + 1, latency_ms: ms, reply: String(replyText).slice(0, 200), attempts };
         }
         markFailure(k.id, res.status, text);
-        attempts.push({ key_mask: `key-${k.id}`, status: res.status, ms, error: statusToError(res.status, text).slice(0, 200) });
+        attempts.push({ key_mask: `key-${k.id}`, status: res.status, ms, error: fullText.slice(0, 600) });
         if (!isRetryableStatus(res.status)) break;
       } catch (e) {
         const ms = Date.now() - a0;

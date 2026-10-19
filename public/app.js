@@ -71,7 +71,10 @@ async function testModel(alias) {
   box.innerHTML = '<p class="mut">Tes ' + alias + ' ...</p>';
   const r = await api('POST', '/api/test/' + encodeURIComponent(alias));
   if (r.ok) box.innerHTML = '<p style="color:#22c55e"><b>OK</b> ' + alias + ' -> ' + r.upstream + ' via key #' + r.key_index + ' (' + r.latency_ms + ' ms). Balasan: <code>' + (r.reply || '(kosong)').replace(/</g, '&lt;') + '</code></p>';
-  else box.innerHTML = '<p style="color:#ef4444"><b>GAGAL</b> ' + alias + ': ' + (r.error || JSON.stringify(r.attempts || []).slice(0, 400)) + '</p>';
+  else {
+    const det = r.error || (r.attempts || []).map(a => '[key status ' + a.status + '] ' + (a.error || '')).join(' | ');
+    box.innerHTML = '<p style="color:#ef4444"><b>GAGAL</b> ' + alias + ': ' + String(det).slice(0, 800).replace(/</g, '&lt;') + '</p>';
+  }
   load();
 }
 async function showUpstream(pid, pname) {
