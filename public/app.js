@@ -1,10 +1,14 @@
 const base = location.origin;
 document.getElementById('baseUrl').textContent = base;
 document.getElementById('byokBase').textContent = base + '/v1';
-const api = (m, u, b) => fetch(u, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined }).then(async r => {
-  const t = await r.text();
-  try { return JSON.parse(t); } catch { return { ok: r.ok, raw: t.slice(0, 300) }; }
-});
+const api = (m, u, b) => {
+  const opts = { method: m };
+  if (b !== undefined) { opts.headers = { 'Content-Type': 'application/json' }; opts.body = JSON.stringify(b); }
+  return fetch(u, opts).then(async r => {
+    const t = await r.text();
+    try { return JSON.parse(t); } catch { return { ok: r.ok, raw: t.slice(0, 300) }; }
+  });
+};
 async function copyText(elId, btn) {
   const t = document.getElementById(elId).textContent.trim();
   try { await navigator.clipboard.writeText(t); }
