@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7router</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--line:#334155;--txt:#e2e8f0;--mut:#94a3b8;--acc:#38bdf8;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt)}
+header{padding:16px 24px;border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header h1{margin:0;font-size:20px}
+.pill{background:#0ea5e933;border:1px solid var(--acc);border-radius:20px;padding:2px 12px;font-size:12px}
+main{padding:20px 24px;max-width:1100px;margin:auto;display:grid;gap:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.card h2{margin:0 0 12px;font-size:16px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select{background:#0f172a;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:8px 10px;font-size:13px;min-width:150px}
+button{background:var(--acc);color:#06283a;border:none;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:13px}
+button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+button.danger{background:transparent;border:1px solid var(--bad);color:var(--bad)}
+button.small{padding:4px 10px;font-size:12px}
+.mut{color:var(--mut);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.st-active{color:var(--ok)}.st-cooldown{color:var(--warn)}.st-invalid,.st-quota_exhausted{color:var(--bad)}
+.prov{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;background:#0b1220}
+.prov-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+code{background:#0f172a;padding:2px 8px;border-radius:6px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+<h1>7router</h1>
+<span class="pill" id="baseUrl"></span>
+<span class="mut">Gateway OpenAI-compatible untuk BYOK (VS Code, Cline, Continue, Roo)</span>
+</header>
+<main>
+<div class="card">
+<h2>Cara pakai di VS Code (BYOK)</h2>
+<div class="row">
+<div><span class="mut">Base URL</span><br><code id="byokBase"></code></div>
+<div><span class="mut">API Key</span><br><code>isi GATEWAY_API_KEY dari .env (atau bebas bila kosong)</code></div>
+<div><span class="mut">Model</span><br><code>alias model yang didaftarkan di bawah</code></div>
+</div>
+<p class="mut">Cline / Roo Code: Settings - Provider OpenAI Compatible - isi Base URL + Key + Model alias.<br>
+Continue (config.yaml): provider openai dengan apiBase seperti di atas.</p>
+</div>
+<div class="card">
+<h2>Tambah Provider</h2>
+<div class="row">
+<input id="pName" placeholder="Nama (mis. openrouter)">
+<input id="pBase" placeholder="Base URL" style="min-width:280px">
+<select id="pAuth"><option value="Bearer">Bearer</option><option value="x-api-key">x-api-key</option><option value="api-key">api-key</option><option value="none">none</option></select>
+<button onclick="addProvider()">Tambah</button>
+</div>
+<p class="mut">Preset:
+<a href="#" onclick="preset('openrouter');return false">OpenRouter</a> -
+<a href="#" onclick="preset('groq');return false">Groq</a> -
+<a href="#" onclick="preset('cerebras');return false">Cerebras</a> -
+<a href="#" onclick="preset('gemini');return false">Gemini</a> -
+<a href="#" onclick="preset('deepseek');return false">DeepSeek</a></p>
+</div>
+<div class="card">
+<h2>Provider & API Key</h2>
+<div id="providers"></div>
+</div>
+<div class="card">
+<h2>Model Virtual</h2>
+<div class="row">
+<input id="mAlias" placeholder="Alias (mis. auto-free)">
+<select id="mProv"></select>
+<input id="mUp" placeholder="Upstream model" style="min-width:260px">
+<button onclick="addModel()">Tambah Model</button>
+</div>
+<div id="models"></div>
+</div>
+<div class="card">
+<h2>Status & Log</h2>
+<div class="row"><button class="ghost" onclick="load()">Refresh</button></div>
+<div id="stats"></div>
+<h2 style="margin-top:16px">Log Terakhir</h2>
+<div id="logs"></div>
+</div>
+</main>
+<script src="/app.js"></script>
+<script src="/app2.js"></script>
+</body>
+</html>
+
